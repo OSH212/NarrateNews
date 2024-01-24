@@ -9,7 +9,7 @@ The idea for NarrateNews was born out of the desire to stay informed and up-to-d
 Current Features:
 
 - Fetches news articles from specified RSS feeds and HTML pages.
-- Summarizes articles using OpenAI's GPT-3.5 model.
+- Summarizes articles using OpenAI's GPT model.
 - Converts summaries to audio files.
 - Filters and sorts articles by publishing date.
 - Handles user input for the number of articles to process.
@@ -30,8 +30,8 @@ txt
 
 Setup
 1. Set up the necessary environment variables:
-- OPENAI_API_KEY: Your OpenAI API key for GPT-3.5.
-- ELEVEN_API_KEY: Your ElevenLabs API key for text-to-speech conversion.
+- OPENAI_API_KEY: Your OpenAI API key.
+- ELEVEN_API_KEY: Your ElevenLabs API key.
 - ELEVENLABS_VOICE_ID: The voice ID for the desired voice from ElevenLabs.
 
 2. Run the script, execute the main.py file (python3 main.py)
