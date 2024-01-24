@@ -1,0 +1,6 @@
+requests
+beautifulsoup4
+feedparser
+newspaper3k
+openai
+gradio
