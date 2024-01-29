@@ -1,7 +1,4 @@
 import os
-from datetime import datetime
-from newspaper import Article
-from datetime import datetime
 from newspaper import Article
 from datetime import datetime
 import requests
