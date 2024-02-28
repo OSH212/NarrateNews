@@ -1,6 +1,6 @@
 import os
-from newspaper import Article
 from datetime import datetime
+from newspaper import Article
 import requests
 
 
@@ -24,7 +24,7 @@ def filter_and_sort_articles(all_article_urls, number_or_all):
     
     for url in all_article_urls:
         if not is_valid_url(url):
-            continue  # Skip invalid URLs
+            continue 
 
         article = Article(url)
         try:
