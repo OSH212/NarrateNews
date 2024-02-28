@@ -62,6 +62,6 @@ Contributions are welcome. Please fork the repository, make your changes, and su
 Disclaimer
 This script uses third-party APIs, and as such, is subject to the terms and conditions of those services. Ensure you comply with their usage policies
 
-Features to come: UI, asynchronous processing, tasks queuing, open-source models, ability to manually input an article url and have it summarized and turned into audio.
+Features to come: UI, asynchronous processing, tasks queuing, open-source models, ability to manually input an article url and have it summarized and turned into audio. Maybe some more processing, network graph of the data ?
 
 Any suggestion, critic, feedback is most welcome. 
