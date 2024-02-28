@@ -1,4 +1,5 @@
 import requests
+import re
 from newspaper import Article
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
