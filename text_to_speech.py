@@ -27,11 +27,18 @@ def convert_to_audio(text, output_file_path):
     }
 
     encoded_data = json.dumps(data).encode('utf-8')
-    response = requests.post(url, data=encoded_data, headers=headers)
-    if response.status_code == 200:
-        with open(output_file_path, 'wb') as f:
-            f.write(response.content)
-        print(f"Audio saved to {output_file_path}")
-    else:
-        print(f"Error: {response.status_code}")
+    try:
+        response = requests.post(url, data=encoded_data, headers=headers)
+        if response.status_code == 200:
+            try:
+                with open(output_file_path, 'wb') as f:
+                    f.write(response.content)
+                print(f"Audio saved to {output_file_path}")
+            except IOError as e:
+                print(f"File writing error: {e}")
+        else:
+            print(f"Error: {response.status_code}")
+            print(response.text)
+    except requests.RequestException as e:
+        print(f"Network or API request error: {e}")
         print(response.text)
