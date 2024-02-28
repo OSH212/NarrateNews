@@ -19,6 +19,9 @@ def get_user_input():
 
 csv_file_path = 'article_summaries.csv'
 
+output_folder = 'output_audios'
+create_output_folder(output_folder)
+
 setup_csv(csv_file_path)
 
 all_article_urls = fetch_rss_feed()
@@ -28,8 +31,6 @@ user_choice = get_user_input()
 filtered_sorted_articles = filter_and_sort_articles(all_article_urls, user_choice)
 
 write_to_csv(filtered_sorted_articles, csv_file_path)
-
-output_folder = 'output_audios'
 create_output_folder(output_folder)
 
 with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
@@ -44,7 +45,7 @@ with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
 
 
 while True:
-    time.sleep(180) 
+    time.sleep(15)  # Modify value to change the frequency of checking for new articles
     new_article_urls = fetch_rss_feed()  
     new_filtered_sorted_articles = filter_and_sort_articles(new_article_urls, 'all')
     write_to_csv(new_filtered_sorted_articles, csv_file_path)
