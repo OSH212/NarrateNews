@@ -1,4 +1,4 @@
-README for NarrateNews: a News Summarization and Audio Conversion Script
+NarrateNews: a News Summarization and Audio Conversion Script
 
 Overview
 
@@ -9,8 +9,8 @@ The idea for NarrateNews was born out of the desire to stay informed and up-to-d
 Current Features:
 
 - Fetches news articles from specified RSS feeds and HTML pages.
-- Summarizes articles using OpenAI's GPT model.
-- Converts summaries to audio files.
+- Summarizes articles using OpenAI's GPT model via litellm (you can change the model and provider to whatever you want)
+- Converts summaries to audio files using ElevenLabs' text-to-speech API.
 - Filters and sorts articles by publishing date.
 - Handles user input for the number of articles to process.
 - Continuously checks for new articles at a set interval.
@@ -22,19 +22,21 @@ To run this script, you will need Python 3.x and the following packages:
 - beautifulsoup4
 - feedparser
 - newspaper3k
-- openai
+(- openai)
+- litellm
 
 
-Install the required packages using the following command:
-txt
+To install: run pip install -r requirements.txt
+
 
 Setup
-1. Set up the necessary environment variables:
+1. Create a .env file in your project directory:
+
 - OPENAI_API_KEY: Your OpenAI API key.
 - ELEVEN_API_KEY: Your ElevenLabs API key.
 - ELEVENLABS_VOICE_ID: The voice ID for the desired voice from ElevenLabs.
 
-2. Run the script, execute the main.py file (python3 main.py)
+2. Run the script, execute the main.py file (python3.11 main.py)
 
 The script will prompt you to enter the number of articles to process or 'All' to process all of today's articles. After processing, the summaries will be saved in the article_summaries.csv file, and the audio files will be saved in the output_audios directory.
 
@@ -62,6 +64,8 @@ Contributions are welcome. Please fork the repository, make your changes, and su
 Disclaimer
 This script uses third-party APIs, and as such, is subject to the terms and conditions of those services. Ensure you comply with their usage policies
 
-Features to come: UI, asynchronous processing, tasks queuing, open-source models, ability to manually input an article url and have it summarized and turned into audio. Maybe some more processing, network graph of the data ?
+Features to come: UI/Reader app with different text input types, asynchronous processing, tasks queuing. Maybe some more processing, network graph of the data ? 
+
+## UPDATE -> complete refactoring on the way with Reader app, library, and more TTS providers and languages (OpenAi, Neets.ai)
 
 Any suggestion, critic, feedback is most welcome. 
