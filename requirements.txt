@@ -1,6 +1,9 @@
 requests
-beautifulsoup4
+#beautifulsoup4
 feedparser
 newspaper3k
-openai
+markdownify
+tenacity
+aiohttp
+pyyaml
 litellm

@@ -1,52 +1,61 @@
+import asyncio
 import os
-import csv 
-from rss_feed import fetch_rss_feed
-from csv_handler import setup_csv, write_to_csv, csv_headers
-from text_to_speech import convert_to_audio
-from utils import create_output_folder, filter_and_sort_articles
-import time
 from datetime import datetime
+from rss_feed import fetch_rss_feed
+from article_extraction import extract_articles
+from summarization import summarize_text
+from text_to_speech import convert_to_audio, select_tts_provider, select_voice, select_neets_model, fetch_elevenlabs_voices, fetch_neets_voices
+from utils import create_output_folder, save_to_yaml, load_from_yaml, filter_today_articles, sanitize_filename
+from config import OUTPUT_FOLDER, ARTICLES_FILE, SUMMARIES_FILE, DEFAULT_TTS_PROVIDER, DEFAULT_NEETS_VOICE, DEFAULT_NEETS_MODEL, ELEVENLABS_VOICE_ID
+from models import Summary, Article
 
-def get_user_input():
-    while True:
-        user_input = input("Enter the number of articles to process ('All' for all today's articles or a number): ")
-        if user_input.lower() == 'all':
-            return 'all'
-        elif user_input.isdigit() and int(user_input) > 0:
-            return int(user_input)
-        else:
-            print("Invalid input. Please enter 'All' or a positive number.")
+async def main():
+    create_output_folder(OUTPUT_FOLDER)
 
-csv_file_path = 'article_summaries.csv'
+    tts_provider = select_tts_provider()
+    if tts_provider == DEFAULT_TTS_PROVIDER:
+        selected_voice_id = DEFAULT_NEETS_VOICE if tts_provider == "neets" else ELEVENLABS_VOICE_ID
+        selected_model = DEFAULT_NEETS_MODEL if tts_provider == "neets" else None
+    else:
+        # fetch available voices and let the user select one
+        if tts_provider == "elevenlabs":
+            voices = fetch_elevenlabs_voices()
+            selected_voice_id = select_voice(voices) or ELEVENLABS_VOICE_ID
+            selected_model = None
+        else:  # neets
+            voices = fetch_neets_voices()
+            selected_voice_id = select_voice(voices) or DEFAULT_NEETS_VOICE
+            selected_model = select_neets_model()
 
-output_folder = 'output_audios'
-create_output_folder(output_folder)
+    urls = await fetch_rss_feed()
+    existing_articles = load_from_yaml(ARTICLES_FILE)
+    existing_summaries = load_from_yaml(SUMMARIES_FILE)
 
-setup_csv(csv_file_path)
+    new_urls = [url for url in urls if url not in existing_articles]
+    new_articles = await extract_articles(new_urls)
+    
+    for article in new_articles:
+        existing_articles[article.url] = article.__dict__
 
-all_article_urls = fetch_rss_feed()
+    save_to_yaml(existing_articles, ARTICLES_FILE)
 
-user_choice = get_user_input()
+    today_articles = filter_today_articles([Article(**article_dict) for article_dict in existing_articles.values()])
 
-filtered_sorted_articles = filter_and_sort_articles(all_article_urls, user_choice)
+    for article in today_articles:
+        if article.url not in existing_summaries:
+            summary_text = summarize_text(article.content)
+            safe_title = sanitize_filename(article.title)
+            audio_filename = f"{safe_title}.mp3"
+            audio_path = os.path.join(OUTPUT_FOLDER, audio_filename)
+            
+            if not os.path.exists(audio_path):
+                convert_to_audio(summary_text, audio_path, tts_provider, selected_voice_id, selected_model)
+            
+            existing_summaries[article.url] = Summary(article=article, summary=summary_text, audio_path=audio_path).__dict__
 
-write_to_csv(filtered_sorted_articles, csv_file_path)
-create_output_folder(output_folder)
+    save_to_yaml(existing_summaries, SUMMARIES_FILE)
 
-with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
-    reader = csv.DictReader(file)
-    for row in reader:
-        article_title = row['Article URL'].split('/')[-1]  
-        summary = row['Summary']
+    print(f"Processed {len(today_articles)} articles. Summaries and audio files saved in {OUTPUT_FOLDER}")
 
-        valid_title = "".join([c for c in article_title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
-        output_audio_path = os.path.join(output_folder, f"{valid_title}.mp3")
-        convert_to_audio(summary, output_audio_path)
-
-
-while True:
-    time.sleep(15)  # Modify value to change the frequency of checking for new articles
-    new_article_urls = fetch_rss_feed()  
-    new_filtered_sorted_articles = filter_and_sort_articles(new_article_urls, 'all')
-    write_to_csv(new_filtered_sorted_articles, csv_file_path)
-    convert_to_audio(csv_file_path, output_folder)
+if __name__ == "__main__":
+    asyncio.run(main())

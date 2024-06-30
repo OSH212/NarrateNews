@@ -1,16 +1,13 @@
-import os
-from dotenv import load_dotenv
+from config import SUMMARIZER_MODEL
 from litellm import completion
-#from openai import OpenAI
 
-#client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
-load_dotenv()
+
 
 def summarize_text(text):
     response = completion(
-        model="gpt-3.5-turbo",
+        model="openrouter/google/gemini-flash-1.5",
         messages=[
-            {'role': 'system', 'content': 'You are a helpful assistant who summarizes news articles.'},
+            {'role': 'system', 'content': 'You are a helpful assistant who summarizes news articles. You output a concive yet comprehensive summary of the given article(s), with no added comments.'},
             {'role': 'user', 'content': text},
         ]
     )

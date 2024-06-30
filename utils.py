@@ -1,51 +1,33 @@
 import os
+import yaml
 from datetime import datetime
-from newspaper import Article
-import requests
-
+import re
 
 def create_output_folder(output_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
+def save_to_yaml(data, file_path):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        yaml.dump(data, file, allow_unicode=True, sort_keys=False, default_flow_style=False)
 
-def is_valid_url(url):
-    try:
-        response = requests.head(url)
-        return response.status_code == 200
-    except requests.RequestException:
-        return False
+def load_from_yaml(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = yaml.safe_load(file)
+            if isinstance(data, list):
+                return {item['url']: item for item in data if 'url' in item}
+            return data
+    return {}
 
-def filter_and_sort_articles(all_article_urls, number_or_all):
-    
+def filter_today_articles(articles):
     today = datetime.now().date()
-    todays_articles = []
+    return [article for article in articles if article.publish_date.date() == today]
 
-    
-    for url in all_article_urls:
-        if not is_valid_url(url):
-            continue 
-
-        article = Article(url)
-        try:
-            article.download()
-            article.parse()
-        except ArticleException as e:
-            print(f"An error occurred while processing the URL: {url}")
-            print(str(e))
-            continue  # Skip articles that cannot be downloaded or parsed
-
-        
-        publish_date = article.publish_date.date() if article.publish_date else None
-        if publish_date == today:
-            todays_articles.append((publish_date, url))
-
-    
-    sorted_articles = sorted(todays_articles, key=lambda x: x[0], reverse=True)
-
-    
-    if number_or_all == 'all':
-        return [url for _, url in sorted_articles]
-    
-    else:
-        return [url for _, url in sorted_articles[:number_or_all]]
+def sanitize_filename(filename):
+    # remove invalid characters
+    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
+    # replace spaces w/ underscores
+    filename = filename.replace(' ', '_')
+    # limit filename length: 200 characters
+    return filename[:200]
