@@ -38,13 +38,13 @@ Setup
 1. Create a .env file in your project directory:
 
 
-OPENAI_API_KEY=
-ELEVEN_API_KEY=
-ELEVENLABS_VOICE_ID=
-ANTHROPIC_API_KEY=
-OPENAI_API_KEY=
-NEETS_API_KEY=-
-OPENROUTER_API_KEY=
+- OPENAI_API_KEY=
+- ELEVEN_API_KEY=
+- ELEVENLABS_VOICE_ID=
+- ANTHROPIC_API_KEY=
+- OPENAI_API_KEY=
+- NEETS_API_KEY=-
+- OPENROUTER_API_KEY=
 
 To start, I suggest a Neets APi key (it's free to start) and an OpenRouter API key (access to most models/providers). 
 
