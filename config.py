@@ -21,5 +21,6 @@ NEETS_API_KEY = os.getenv("NEETS_API_KEY")
 DEFAULT_TTS_PROVIDER = "neets"
 DEFAULT_NEETS_MODEL = "ar-diff-50k"
 DEFAULT_NEETS_VOICE = "cardi-b"
+DEFAULT_ELEVENLABS_VOICE = "d39BbXcI33A814zijpKb"
 
 SUMMARIZER_MODEL = "openrouter/google/gemini-flash-1.5"

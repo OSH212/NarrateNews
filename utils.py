@@ -8,9 +8,10 @@ def create_output_folder(output_folder):
         os.makedirs(output_folder)
 
 def save_to_yaml(data, file_path):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'w', encoding='utf-8') as file:
         yaml.dump(data, file, allow_unicode=True, sort_keys=False, default_flow_style=False)
-
+        
 def load_from_yaml(file_path):
     if os.path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as file:

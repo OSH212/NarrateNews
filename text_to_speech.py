@@ -21,7 +21,7 @@ def fetch_elevenlabs_voices():
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         voices = response.json()["voices"]
-        return [(voice["voice_id"], voice["name"], voice.get("labels", {}).get("language")) for voice in voices]
+        return [(voice["voice_id"], voice["name"]) for voice in voices]
     except requests.RequestException as e:
         logger.error(f"Failed to fetch ElevenLabs voices: {e}")
         return []

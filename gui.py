@@ -34,9 +34,12 @@ class NarrateNewsGUI:
         self.summarizer_model_var.set(SUMMARIZER_MODEL)
         self.update_voice_options()
         if DEFAULT_TTS_PROVIDER == "neets":
-            self.voice_var.set(DEFAULT_NEETS_VOICE)
+            self.voice_var.set(f"{DEFAULT_NEETS_VOICE} ({DEFAULT_NEETS_VOICE})")
         else:
-            self.voice_var.set(ELEVENLABS_VOICE_ID)
+            elevenlabs_voices = fetch_elevenlabs_voices()
+            default_voice = next((v for v in elevenlabs_voices if v[0] == DEFAULT_ELEVENLABS_VOICE), None)
+            if default_voice:
+                self.voice_var.set(f"{default_voice[1]} ({default_voice[0]})")
         self.load_data()
 
     def create_library_tab(self):
@@ -98,8 +101,8 @@ class NarrateNewsGUI:
             voices = fetch_elevenlabs_voices()
         else:
             voices = fetch_neets_voices()
-        self.voice_combobox['values'] = [voice[1] for voice in voices]
-        self.voice_var.set(voices[0][1] if voices else "")
+        self.voice_combobox['values'] = [f"{voice[1]} ({voice[0]})" for voice in voices]
+        self.voice_var.set(f"{voices[0][1]} ({voices[0][0]})" if voices else "")
 
     def save_settings(self):
         # Update config.py with new settings
@@ -144,9 +147,12 @@ class NarrateNewsGUI:
 
     async def process_feeds_async(self):
         self.progress_var.set("Processing feeds...")
-        rss_feeds = [feed.strip() for feed in self.rss_feeds_var.get().split(",")]
+        rss_feeds = self.rss_feeds_var.get().strip("[]").replace("'", "").split(",")
+        rss_feeds = [feed.strip() for feed in rss_feeds if feed.strip()]
         
-        all_urls = await fetch_rss_feed()
+        print(f"RSS feeds: {rss_feeds}")
+        
+        all_urls = await fetch_rss_feed(rss_feeds)
 
         existing_articles = load_from_yaml(ARTICLES_FILE)
         existing_summaries = load_from_yaml(SUMMARIES_FILE)
@@ -168,8 +174,9 @@ class NarrateNewsGUI:
                 audio_filename = f"{safe_title}.mp3"
                 audio_path = os.path.join(OUTPUT_FOLDER, audio_filename)
 
-                if not os.path.exists(audio_path):
-                    convert_to_audio(summary_text, audio_path, self.tts_provider_var.get(), self.voice_var.get(), self.model_var.get())
+            if not os.path.exists(audio_path):
+                voice_id = self.voice_var.get().split('(')[-1].strip(')')
+                convert_to_audio(summary_text, audio_path, self.tts_provider_var.get(), voice_id, self.model_var.get())
 
                 existing_summaries[article.url] = Summary(article=article, summary=summary_text, audio_path=audio_path).__dict__
                 self.library_tree.insert("", "end", values=(article.title, article.url, summary_text, audio_path))
