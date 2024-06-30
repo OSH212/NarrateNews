@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-#RSS_FEED_URL = 'https://www.aljazeera.com/xml/rss/all.xml'
 
 RSS_FEEDS = [
     'https://www.aljazeera.com/xml/rss/all.xml',

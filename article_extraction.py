@@ -27,7 +27,7 @@ async def extract_article_content(url):
         content = article.text
         publish_date = article.publish_date or datetime.now()
         
-        # return article object
+
         return Article(url=url, title=title, content=content, publish_date=publish_date)
 
 async def extract_articles(urls):
