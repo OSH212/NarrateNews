@@ -8,6 +8,7 @@ import webbrowser
 import subprocess
 import threading
 import platform
+import pygame
 from rss_feed import fetch_rss_feed
 from article_extraction import extract_articles
 from summarization import summarize_text
@@ -27,6 +28,9 @@ class NarrateNewsGUI:
         self.create_library_tab()
         self.create_settings_tab()
         self.create_processing_tab()
+        self.processing_paused = False
+        self.current_audio = None
+        pygame.mixer.init()
         self.progress_queue = queue.Queue()
         self.processing_thread = None
 
@@ -67,13 +71,24 @@ class NarrateNewsGUI:
 
         self.library_tree.bind("<Double-1>", self.on_item_double_click)
 
-        # buttons for different actions
         button_frame = ttk.Frame(library_frame)
         button_frame.pack(fill="x", padx=5, pady=5)
 
         ttk.Button(button_frame, text="Open Article", command=self.open_article).pack(side="left", padx=5)
         ttk.Button(button_frame, text="View Summary", command=self.view_summary).pack(side="left", padx=5)
         ttk.Button(button_frame, text="Play Audio", command=self.play_audio).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Refresh Library", command=self.refresh_library).pack(side="left", padx=5)
+
+        # Audio player controls
+        audio_frame = ttk.Frame(library_frame)
+        audio_frame.pack(fill="x", padx=5, pady=5)
+
+        ttk.Button(audio_frame, text="Play/Pause", command=self.toggle_play_pause).pack(side="left", padx=5)
+        ttk.Button(audio_frame, text="Stop", command=self.stop_audio).pack(side="left", padx=5)
+        ttk.Button(audio_frame, text="-5s", command=lambda: self.seek_audio(-5)).pack(side="left", padx=5)
+        ttk.Button(audio_frame, text="+5s", command=lambda: self.seek_audio(5)).pack(side="left", padx=5)
+        self.loop_var = tk.BooleanVar()
+        ttk.Checkbutton(audio_frame, text="Loop", variable=self.loop_var).pack(side="left", padx=5)
 
 
     def create_settings_tab(self):
@@ -111,10 +126,41 @@ class NarrateNewsGUI:
         ttk.Label(processing_frame, text="RSS Feeds (comma-separated):").grid(row=0, column=0, padx=5, pady=5)
         ttk.Entry(processing_frame, textvariable=self.rss_feeds_var, width=50).grid(row=0, column=1, padx=5, pady=5)
 
-        ttk.Button(processing_frame, text="Process Feeds", command=self.process_feeds).grid(row=1, column=0, columnspan=2, pady=10)
+        #ttk.Button(processing_frame, text="Process Feeds", command=self.process_feeds).grid(row=1, column=0, columnspan=2, pady=10)
 
         self.progress_var = tk.StringVar(value="Ready")
         ttk.Label(processing_frame, textvariable=self.progress_var).grid(row=2, column=0, columnspan=2, pady=5)
+        ttk.Button(processing_frame, text="Process Feeds", command=self.process_feeds).grid(row=1, column=0, pady=10)
+        ttk.Button(processing_frame, text="Pause/Resume", command=self.toggle_processing).grid(row=1, column=1, pady=10)
+
+    def refresh_library(self):
+        self.library_tree.delete(*self.library_tree.get_children())
+        self.load_data()
+
+    def toggle_processing(self):
+        self.processing_paused = not self.processing_paused
+        status = "Paused" if self.processing_paused else "Resumed"
+        self.progress_var.set(f"Processing {status}")
+
+    def toggle_play_pause(self):
+        if self.current_audio:
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.pause()
+            else:
+                pygame.mixer.music.unpause()
+        else:
+            self.play_audio()
+
+    def stop_audio(self):
+        pygame.mixer.music.stop()
+        self.current_audio = None
+
+    def seek_audio(self, seconds):
+        if self.current_audio:
+            current_pos = pygame.mixer.music.get_pos() / 1000  # convert to seconds
+            new_pos = max(0, current_pos + seconds)
+            pygame.mixer.music.play(start=new_pos)
+
 
     def update_voice_options(self, *args):
         provider = self.tts_provider_var.get()
@@ -184,14 +230,12 @@ class NarrateNewsGUI:
         item = selection[0]
         audio_path = self.library_tree.item(item, "values")[3]
         if os.path.exists(audio_path):
-            if platform.system() == "Darwin":  # macOS
-                subprocess.run(["open", audio_path])
-            elif platform.system() == "Windows":
-                os.startfile(audio_path)
-            else:  # linux and  Unix systems
-                subprocess.run(["xdg-open", audio_path])
+            pygame.mixer.music.load(audio_path)
+            pygame.mixer.music.play()
+            self.current_audio = audio_path
         else:
             messagebox.showerror("Error", "Audio file not found.")
+
             
     def process_feeds(self):
         if self.processing_thread and self.processing_thread.is_alive():
@@ -202,57 +246,12 @@ class NarrateNewsGUI:
         self.processing_thread.start()
         self.master.after(100, self.check_progress_queue)
 
-
-    # def process_feeds(self):
-    #     self.master.after(0, self.process_feeds_wrapper)
-
-    # def process_feeds_wrapper(self):
-    #     asyncio.run(self.process_feeds_async())
         
     def process_feeds_thread(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.process_feeds_async())
 
-    # async def process_feeds_async(self):
-    #     self.progress_var.set("Processing feeds...")
-    #     rss_feeds = self.rss_feeds_var.get().strip("[]").replace("'", "").split(",")
-    #     rss_feeds = [feed.strip() for feed in rss_feeds if feed.strip()]
-        
-    #     print(f"RSS feeds: {rss_feeds}")
-        
-    #     all_urls = await fetch_rss_feed(rss_feeds)
-
-    #     existing_articles = load_from_yaml(ARTICLES_FILE)
-    #     existing_summaries = load_from_yaml(SUMMARIES_FILE)
-
-    #     new_urls = [url for url in all_urls if url not in existing_articles]
-    #     new_articles = await extract_articles(new_urls)
-
-    #     for article in new_articles:
-    #         existing_articles[article.url] = article.__dict__
-
-    #     save_to_yaml(existing_articles, ARTICLES_FILE)
-
-    #     today_articles = filter_today_articles([Article(**article_dict) for article_dict in existing_articles.values()])
-
-    #     for article in today_articles:
-    #         if article.url not in existing_summaries:
-    #             summary_text = summarize_text(article.content)
-    #             safe_title = sanitize_filename(article.title)
-    #             audio_filename = f"{safe_title}.mp3"
-    #             audio_path = os.path.join(OUTPUT_FOLDER, audio_filename)
-
-    #         if not os.path.exists(audio_path):
-    #             voice_id = self.voice_var.get().split('(')[-1].strip(')')
-    #             convert_to_audio(summary_text, audio_path, self.tts_provider_var.get(), voice_id, self.model_var.get())
-
-    #             existing_summaries[article.url] = Summary(article=article, summary=summary_text, audio_path=audio_path).__dict__
-    #             self.library_tree.insert("", "end", values=(article.title, article.url, summary_text, audio_path))
-
-    #     save_to_yaml(existing_summaries, SUMMARIES_FILE)
-    #     self.progress_var.set(f"Processed {len(today_articles)} articles.")
-    
     async def process_feeds_async(self):
         try:
             self.progress_queue.put(("status", "Processing feeds..."))
@@ -273,6 +272,12 @@ class NarrateNewsGUI:
             new_articles = await extract_articles(new_urls)
 
             for i, article in enumerate(new_articles):
+                if self.processing_paused:
+                    self.progress_queue.put(("status", "Processing paused"))
+                    while self.processing_paused:
+                        await asyncio.sleep(1)
+                    self.progress_queue.put(("status", "Processing resumed"))
+
                 existing_articles[article.url] = article.__dict__
                 self.progress_queue.put(("status", f"Processed article {i+1}/{len(new_articles)}"))
 
@@ -281,6 +286,12 @@ class NarrateNewsGUI:
             today_articles = filter_today_articles([Article(**article_dict) for article_dict in existing_articles.values()])
 
             for i, article in enumerate(today_articles):
+                if self.processing_paused:
+                    self.progress_queue.put(("status", "Processing paused"))
+                    while self.processing_paused:
+                        await asyncio.sleep(1)
+                    self.progress_queue.put(("status", "Processing resumed"))
+
                 if article.url not in existing_summaries:
                     summary_text = summarize_text(article.content)
                     safe_title = sanitize_filename(article.title)
@@ -302,7 +313,6 @@ class NarrateNewsGUI:
             print(f"Error in process_feeds_async: {str(e)}")  # Debug print
             self.progress_queue.put(("error", str(e)))
 
-            
     def check_progress_queue(self):
         try:
             while True:
@@ -320,10 +330,21 @@ class NarrateNewsGUI:
             self.master.after(100, self.check_progress_queue)
         else:
             self.progress_var.set("Ready")
+            if self.loop_var.get() and self.current_audio:
+                self.play_next_audio()
+
+    def play_next_audio(self):
+        current_selection = self.library_tree.selection()
+        if current_selection:
+            current_index = self.library_tree.index(current_selection[0])
+            next_item = self.library_tree.get_children()[current_index + 1]
+            self.library_tree.selection_set(next_item)
+            self.play_audio()
+        else:
+            self.stop_audio()
 
 
 def launch_gui(use_defaults=False):
     root = tk.Tk()
     app = NarrateNewsGUI(root, use_defaults=use_defaults)
     root.mainloop()
-    
