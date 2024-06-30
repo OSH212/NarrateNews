@@ -1,5 +1,8 @@
-import asyncio
 import os
+import asyncio
+import argparse
+import tkinter as tk
+from gui import launch_gui, NarrateNewsGUI
 from datetime import datetime
 from rss_feed import fetch_rss_feed
 from article_extraction import extract_articles
@@ -9,7 +12,17 @@ from utils import create_output_folder, save_to_yaml, load_from_yaml, filter_tod
 from config import OUTPUT_FOLDER, ARTICLES_FILE, SUMMARIES_FILE, DEFAULT_TTS_PROVIDER, DEFAULT_NEETS_VOICE, DEFAULT_NEETS_MODEL, ELEVENLABS_VOICE_ID
 from models import Summary, Article
 
-async def main():
+def main(use_gui=False):
+    if use_gui:
+        launch_gui_with_defaults()
+        return
+
+    asyncio.run(process_feeds())
+
+def launch_gui_with_defaults():
+    launch_gui(use_defaults=True)
+
+async def process_feeds():
     create_output_folder(OUTPUT_FOLDER)
 
     tts_provider = select_tts_provider()
@@ -58,4 +71,8 @@ async def main():
     print(f"Processed {len(today_articles)} articles. Summaries and audio files saved in {OUTPUT_FOLDER}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser(description="NarrateNews")
+    parser.add_argument("--gui", action="store_true", help="Launch the GUI")
+    args = parser.parse_args()
+
+    asyncio.run(main(use_gui=args.gui))

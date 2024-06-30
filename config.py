@@ -3,7 +3,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-RSS_FEED_URL = 'https://www.aljazeera.com/xml/rss/all.xml'
+#RSS_FEED_URL = 'https://www.aljazeera.com/xml/rss/all.xml'
+
+RSS_FEEDS = [
+    'https://www.aljazeera.com/xml/rss/all.xml',
+    # ad more RSS feed URLs here
+]
+
 OUTPUT_FOLDER = 'output'
 ARTICLES_FILE = os.path.join(OUTPUT_FOLDER, 'articles.yaml')
 SUMMARIES_FILE = os.path.join(OUTPUT_FOLDER, 'summaries.yaml')
@@ -16,4 +22,4 @@ DEFAULT_TTS_PROVIDER = "neets"
 DEFAULT_NEETS_MODEL = "ar-diff-50k"
 DEFAULT_NEETS_VOICE = "cardi-b"
 
-SUMMARIZER_MODEL = os.getenv("SUMMARIZER_MODEL", "openrouter/google/gemini-flash-1.5")
+SUMMARIZER_MODEL = "openrouter/google/gemini-flash-1.5"

@@ -1,8 +1,11 @@
 import asyncio
 import feedparser
-from config import RSS_FEED_URL
+from config import RSS_FEEDS
 
 async def fetch_rss_feed():
     loop = asyncio.get_event_loop()
-    feed = await loop.run_in_executor(None, feedparser.parse, RSS_FEED_URL)
-    return [entry.link for entry in feed.entries]
+    all_entries = []
+    for feed_url in RSS_FEEDS:
+        feed = await loop.run_in_executor(None, feedparser.parse, feed_url)
+        all_entries.extend([entry.link for entry in feed.entries])
+    return all_entries
