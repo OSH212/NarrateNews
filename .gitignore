@@ -11,6 +11,17 @@
 !.env.example
 !config.py
 !main.py
+!article_extraction.py 
+!config.py
+!main.py
+!models.py
+!README.md
+!requirements.txt
+!rss_feed.py
+!start.py
+!summarization.py
+!text_to_speech.py
+!utils.py
 
 # Documentation
 !docs/
