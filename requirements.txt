@@ -1,0 +1,17 @@
+request
+fastapi
+uvicorn
+pydantic
+loguru
+python-dotenv
+aiohttp
+pyyaml
+feedparser
+newspaper3k
+markdownify
+litellm
+tenacity
+pygame
+fastapi-cors
+black
+isort

@@ -1,0 +1,54 @@
+# Ignore everything
+*
+
+# not these ..
+!*.py
+!README.md 
+!requirements.txt
+!.gitignore
+!start.py
+
+# ...even in subdirectories
+!*/
+
+# ignore Python cache files
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+env/
+ENV/
+nnvenv/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+*.mp3
+*.wav
+*.csv
+rss_feeds.json
+.env
+output_audios/
+output/
+
+# Removed files
+csv_handler.py
+
+# Add exception for documentation images
+!docs/*.png
+!docs/*.jpg
+!docs/*.gif
