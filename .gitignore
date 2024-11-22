@@ -44,15 +44,38 @@
 # Allow the src directory and its contents
 !narrate-news-web/src/
 !narrate-news-web/src/app/
+!narrate-news-web/src/app/**
 !narrate-news-web/src/app/**/*
+!narrate-news-web/src/app/page.tsx
+!narrate-news-web/src/app/layout.tsx
+!narrate-news-web/src/app/globals.css
+!narrate-news-web/src/app/settings/
+!narrate-news-web/src/app/settings/**/*
+
 !narrate-news-web/src/components/
+!narrate-news-web/src/components/**
 !narrate-news-web/src/components/**/*
+!narrate-news-web/src/components/ui/
+!narrate-news-web/src/components/ui/**/*
+
 !narrate-news-web/src/lib/
+!narrate-news-web/src/lib/**
 !narrate-news-web/src/lib/**/*
+
 !narrate-news-web/src/hooks/
+!narrate-news-web/src/hooks/**
 !narrate-news-web/src/hooks/**/*
+
 !narrate-news-web/public/
+!narrate-news-web/public/**
 !narrate-news-web/public/**/*
+
+# Explicitly include specific file types in these directories
+!narrate-news-web/src/**/*.ts
+!narrate-news-web/src/**/*.tsx
+!narrate-news-web/src/**/*.js
+!narrate-news-web/src/**/*.jsx
+!narrate-news-web/src/**/*.css
 
 #  still ignore these specific patterns anywhere they appear
 **/.DS_Store
