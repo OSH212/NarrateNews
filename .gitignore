@@ -1,80 +1,67 @@
-# Ignore everything
+# First, ignore everything
 *
 
-# But not these files...
-!*.py
-!README.md 
+
+# Root level files
+!README.md
 !requirements.txt
 !.gitignore
 !start.py
 !LICENSE
 !.env.example
+!config.py
+!main.py
 
-# And not these folders...
-!*/
-
-# Allow narrate-news-web folder and its contents
-!narrate-news-web/**/*.ts
-!narrate-news-web/**/*.tsx
-!narrate-news-web/**/*.js
-!narrate-news-web/**/*.jsx
-!narrate-news-web/**/*.json
-!narrate-news-web/**/*.md
-!narrate-news-web/public/**/*
-!narrate-news-web/src/**/*
-
-# Virtual environment
-venv/
-env/
-ENV/
-nnvenv/
-*venv/
-.env
-.venv
-
-# IDEs and editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Project specific
-*.mp3
-*.wav
-*.csv
-rss_feeds.json
-.env
-output_audios/
-output/
-
-# Removed files
-csv_handler.py
-
-# Add exception for documentation images
+# Documentation
+!docs/
 !docs/*.png
 !docs/*.jpg
 !docs/*.gif
 
-# Still ignore these patterns even if they match above rules
-**/__pycache__/
-**/*.pyc
+# Allow the narrate-news-web directory itself
+!narrate-news-web/
+!narrate-news-web/package.json
+!narrate-news-web/tsconfig.json
+!narrate-news-web/next.config.js
+!narrate-news-web/postcss.config.js
+!narrate-news-web/tailwind.config.js
+!narrate-news-web/README.md
+
+# Allow the src directory and its contents
+!narrate-news-web/src/
+!narrate-news-web/src/**/*
+!narrate-news-web/public/
+!narrate-news-web/public/**/*
+
+#  still ignore these specific patterns anywhere they appear
+**/.DS_Store
 **/node_modules/
 **/.next/
 **/out/
 **/.env
 **/.env.*
+!**/.env.example
+**/__pycache__/
+**/*.pyc
+**/build/
+**/.vercel/
+**/*.log
+**/coverage/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/*.sqlite
+**/*.db
 **/venv/
 **/env/
 **/ENV/
 **/nnvenv/
 **/*venv/
-**/.DS_Store
+**/.idea/
+**/.vscode/
+**/*.pem
+**/*.tsbuildinfo
+**/next-env.d.ts
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
