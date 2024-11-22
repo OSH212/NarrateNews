@@ -22,6 +22,7 @@
 !summarization.py
 !text_to_speech.py
 !utils.py
+!api/main.py
 
 # Documentation
 !docs/
