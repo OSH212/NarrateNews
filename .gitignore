@@ -1,19 +1,27 @@
 # Ignore everything
 *
 
-# not these ..
+# But not these files...
 !*.py
 !README.md 
 !requirements.txt
 !.gitignore
 !start.py
+!LICENSE
+!.env.example
 
-# ...even in subdirectories
+# And not these folders...
 !*/
 
-# ignore Python cache files
-__pycache__/
-*.pyc
+# Allow narrate-news-web folder and its contents
+!narrate-news-web/**/*.ts
+!narrate-news-web/**/*.tsx
+!narrate-news-web/**/*.js
+!narrate-news-web/**/*.jsx
+!narrate-news-web/**/*.json
+!narrate-news-web/**/*.md
+!narrate-news-web/public/**/*
+!narrate-news-web/src/**/*
 
 # Virtual environment
 venv/
@@ -55,3 +63,18 @@ csv_handler.py
 !docs/*.png
 !docs/*.jpg
 !docs/*.gif
+
+# Still ignore these patterns even if they match above rules
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+**/.next/
+**/out/
+**/.env
+**/.env.*
+**/venv/
+**/env/
+**/ENV/
+**/nnvenv/
+**/*venv/
+**/.DS_Store
