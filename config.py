@@ -22,7 +22,7 @@ DEFAULT_NEETS_MODEL = "ar-diff-50k"
 DEFAULT_NEETS_VOICE = "cardi-b"
 DEFAULT_ELEVENLABS_VOICE = "d39BbXcI33A814zijpKb"
 
-SUMMARIZER_MODEL = "openrouter/google/gemini-flash-1.5"
+SUMMARIZER_MODEL = "openrouter/google/gemini-flash-1.5-8b"
 
 SETTINGS_FILE = os.path.join(OUTPUT_FOLDER, 'settings.yaml')
 

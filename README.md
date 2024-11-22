@@ -33,7 +33,7 @@ NarrateNews is a modern web application designed to fetch news articles from RSS
 - NEETS_API_KEY=-
 - OPENROUTER_API_KEY=
 
-To start, Use your ElevenLabs or a Neets API key (it's free to start) and an OpenRouter API key (access to most models/providers). 
+To start, Use your [ElevenLabs](https://elevenlabs.io/) or a [Neets API key](https://neets.ai/ - it's free to start) and an [OpenRouter API key](https://openrouter.ai/ - access to most models/providers).
 
 
 2. Install Python dependencies: 
