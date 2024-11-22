@@ -33,7 +33,7 @@ NarrateNews is a modern web application designed to fetch news articles from RSS
 - NEETS_API_KEY=-
 - OPENROUTER_API_KEY=
 
-To start, Use your [ElevenLabs](https://elevenlabs.io/) or a [Neets API key](https://neets.ai/ - it's free to start) and an [OpenRouter API key](https://openrouter.ai/ - access to most models/providers).
+To start, Use your [ElevenLabs](https://elevenlabs.io/) or a [Neets API key](https://neets.ai/) (it's free to start) and an [OpenRouter API key](https://openrouter.ai/) (access to most models/providers).
 
 
 2. Install Python dependencies: 
@@ -71,11 +71,37 @@ This application uses third-party APIs and services (ElevenLabs, Neets.ai, OpenA
 Please fork the repository, make your changes, and submit a pull request.
 
 ## TODO/ADD
-- Add different input types: text, files (.pdf, .txt, etc.)
-- Add library search functionality
-- Add tagging system
-- Add free TTS options
-- Add mobile support
+- different input types
+- library search 
+- free TTS 
+- mobile support
 - GraphRAG
+
+
+
+
+
+
+
+
+
+
+
+## License
+
+MIT-NC License
+
+Copyright (c) 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, and distribute the Software, subject to the following conditions:
+
+1. The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+2. The Software may not be used for commercial purposes. Commercial purposes include, but are not limited to:
+   - Using the Software for commercial advantage or monetary compensation
+   - Integrating the Software into a commercial product or service
+   - Using the Software in a business environment
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
