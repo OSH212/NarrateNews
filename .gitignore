@@ -1,7 +1,6 @@
 # First, ignore everything
 *
 
-
 # Root level files
 !README.md
 !requirements.txt
@@ -22,6 +21,9 @@
 !summarization.py
 !text_to_speech.py
 !utils.py
+
+# API folder
+!api/
 !api/main.py
 
 # Documentation
@@ -41,7 +43,14 @@
 
 # Allow the src directory and its contents
 !narrate-news-web/src/
-!narrate-news-web/src/**/*
+!narrate-news-web/src/app/
+!narrate-news-web/src/app/**/*
+!narrate-news-web/src/components/
+!narrate-news-web/src/components/**/*
+!narrate-news-web/src/lib/
+!narrate-news-web/src/lib/**/*
+!narrate-news-web/src/hooks/
+!narrate-news-web/src/hooks/**/*
 !narrate-news-web/public/
 !narrate-news-web/public/**/*
 
