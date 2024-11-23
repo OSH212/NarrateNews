@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useInView } from 'react-intersection-observer';
+import { createPollingFunction } from "@/lib/api";
 
 const LoadingSkeleton = () => (
   <div className="space-y-4">
@@ -46,12 +47,32 @@ export default function LibraryContent() {
   const { ref, inView } = useInView();
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      loadSummaries();
-    }, 300); // 300ms debounce
+    setLoading(true);
+    const stopPolling = createPollingFunction(
+      () => api.getSummaries()
+    )((newSummaries) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const filteredSummaries: typeof newSummaries = {};
+      
+      Object.entries(newSummaries)
+        .filter(([_, summary]) => {
+          const summaryDate = new Date(summary.article.publish_date);
+          return format(summaryDate, 'yyyy-MM-dd') === dateStr;
+        })
+        .sort(([_, a], [__, b]) => {
+          return new Date(b.article.publish_date).getTime() - 
+                 new Date(a.article.publish_date).getTime();
+        })
+        .forEach(([key, summary]) => {
+          filteredSummaries[key] = summary;
+        });
+      
+      setSummaries(filteredSummaries);
+      setLoading(false);
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [date]); // Only reload when date changes
+    return () => stopPolling();
+  }, [date]); // Only recreate polling when date changes
 
   useEffect(() => {
     return () => {

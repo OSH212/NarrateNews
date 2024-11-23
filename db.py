@@ -107,7 +107,7 @@ class Database:
                     article_dict['content'],
                     publish_date
                 ))
-                conn.commit()
+                conn.commit()  # Ensure immediate commit
             except Exception as e:
                 logger.error(f"Error saving article {article_dict.get('url')}: {str(e)}")
                 raise

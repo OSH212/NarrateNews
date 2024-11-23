@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import * as api from "@/lib/api";
+import { createPollingFunction } from "@/lib/api";
 
 export default function PlayerContent() {
   const [summaries, setSummaries] = useState<api.Summary[]>([]);
@@ -34,20 +35,11 @@ export default function PlayerContent() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      loadSummaries();
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [date]); // Reload when date changes
-
-  const loadSummaries = async () => {
-    try {
-      const response = await api.getSummaries();
+    const stopPolling = api.createPollingFunction(
+      () => api.getSummaries()
+    )((newSummaries) => {
       const dateStr = format(date, 'yyyy-MM-dd');
-      
-      // Filter and sort summaries by date
-      const filteredSummaries = Object.values(response)
+      const filteredSummaries = Object.values(newSummaries)
         .filter(summary => {
           const summaryDate = new Date(summary.article.publish_date);
           return format(summaryDate, 'yyyy-MM-dd') === dateStr;
@@ -56,26 +48,11 @@ export default function PlayerContent() {
           new Date(b.article.publish_date).getTime() - 
           new Date(a.article.publish_date).getTime()
         );
-      
       setSummaries(filteredSummaries);
-      
-      // Reset current playing state if no summaries for selected date
-      if (filteredSummaries.length === 0) {
-        setCurrentIndex(-1);
-        setIsPlaying(false);
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.src = "";
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load audio summaries",
-        variant: "destructive",
-      });
-    }
-  };
+    });
+
+    return () => stopPolling();
+  }, [date]); // Only recreate polling when date changes
 
   const playAudio = async (index: number) => {
     if (audioRef.current) {

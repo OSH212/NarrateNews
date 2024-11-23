@@ -229,13 +229,13 @@ async def get_summaries():
 async def start_processing(background_tasks: BackgroundTasks):
     """Start the article processing task."""
     try:
-        logger.info("Starting background article processing task")
+        logger.info("Starting article processing task")
         
         # Create output directory if it doesn't exist
         os.makedirs(OUTPUT_FOLDER, exist_ok=True)
         
-        # Process articles directly instead of in background
-        await process_articles()
+        # Process articles in the background
+        background_tasks.add_task(process_articles)
         
         return {"status": "success", "message": "Article processing started"}
     except Exception as e:

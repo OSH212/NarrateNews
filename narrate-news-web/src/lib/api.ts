@@ -103,3 +103,23 @@ export async function startProcessing(): Promise<void> {
   });
   await handleResponse(response);
 }
+
+export function createPollingFunction<T>(
+  fetchFn: () => Promise<T>,
+  interval: number = 5000
+) {
+  return (callback: (data: T) => void) => {
+    const poll = async () => {
+      try {
+        const data = await fetchFn();
+        callback(data);
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    };
+
+    poll(); // Initial fetch
+    const intervalId = setInterval(poll, interval);
+    return () => clearInterval(intervalId);
+  };
+}
