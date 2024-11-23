@@ -10,6 +10,7 @@ from typing import Optional, List
 from datetime import datetime, date
 from contextlib import asynccontextmanager
 from loguru import logger
+from db import Database
 
 # Configure logger
 logger.remove()  # Remove default handler
@@ -29,12 +30,15 @@ from rss_feed import fetch_rss_feed
 from article_extraction import extract_articles
 from summarization import summarize_text
 from text_to_speech import convert_to_audio, fetch_elevenlabs_voices, fetch_neets_voices
-from utils import create_output_folder, save_to_yaml, load_from_yaml, filter_today_articles, sanitize_filename, filter_articles_by_date
+from utils import create_output_folder, sanitize_filename, filter_articles_by_date
 from models import Article, Summary
 
 # Global state
 processing_task = None
 is_processing_paused = False
+
+# Initialize database
+db = Database()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -76,25 +80,24 @@ class Settings(BaseModel):
 # Modify the settings initialization
 def load_current_settings():
     try:
-        if os.path.exists(SETTINGS_FILE):
-            saved_settings = load_from_yaml(SETTINGS_FILE)
-            if saved_settings:
-                return Settings(**saved_settings)
+        # Get settings from database, ensuring defaults exist
+        settings = db.ensure_default_settings()
+        if settings:
+            return Settings(**settings)
     except Exception as e:
         logger.error(f"Error loading settings: {e}")
-    
-    # Return default settings if loading fails or file doesn't exist
-    return Settings(
-        ttsProvider=DEFAULT_TTS_PROVIDER,
-        voice=DEFAULT_NEETS_VOICE if DEFAULT_TTS_PROVIDER == "neets" else DEFAULT_ELEVENLABS_VOICE,
-        neetModel=DEFAULT_NEETS_MODEL,
-        summarizerModel=SUMMARIZER_MODEL,
-        rssFeeds=RSS_FEEDS,
-        autoPlay=False,
-        processInterval=300
-    )
+        # Return default settings if loading fails
+        return Settings(
+            ttsProvider=DEFAULT_TTS_PROVIDER,
+            voice=DEFAULT_NEETS_VOICE if DEFAULT_TTS_PROVIDER == "neets" else DEFAULT_ELEVENLABS_VOICE,
+            neetModel=DEFAULT_NEETS_MODEL,
+            summarizerModel=SUMMARIZER_MODEL,
+            rssFeeds=RSS_FEEDS,
+            autoPlay=False,
+            processInterval=300
+        )
 
-# Initialize settings from file or defaults
+# Initialize settings from database or defaults
 current_settings = load_current_settings()
 
 async def process_articles():
@@ -106,28 +109,23 @@ async def process_articles():
         create_output_folder(OUTPUT_FOLDER)
         logger.info(f"Ensuring output folder exists: {OUTPUT_FOLDER}")
 
-        # Load current settings from file
-        global current_settings
-        current_settings = load_current_settings()
+        # Load current settings
+        settings = db.get_settings()
         
         # Use loaded settings
-        tts_provider = current_settings.ttsProvider
-        voice_id = current_settings.voice
-        model = current_settings.neetModel if tts_provider == "neets" else None
-        rss_feeds = current_settings.rssFeeds
+        tts_provider = settings.get('ttsProvider', DEFAULT_TTS_PROVIDER)
+        voice_id = settings.get('voice', DEFAULT_NEETS_VOICE if tts_provider == "neets" else DEFAULT_ELEVENLABS_VOICE)
+        model = settings.get('neetModel', DEFAULT_NEETS_MODEL) if tts_provider == "neets" else None
+        rss_feeds = settings.get('rssFeeds', RSS_FEEDS)
         
         logger.info(f"Using TTS Provider: {tts_provider}, Voice: {voice_id}, Model: {model}")
         logger.info(f"Processing RSS feeds: {rss_feeds}")
 
-        # Load existing data
-        articles_dict = load_from_yaml(ARTICLES_FILE) or {}
-        summaries_dict = load_from_yaml(SUMMARIES_FILE) or {}
-        logger.info(f"Loaded {len(articles_dict)} existing articles and {len(summaries_dict)} summaries")
-
         # Fetch new articles
         logger.info("Fetching articles from RSS feeds...")
         urls = await fetch_rss_feed(rss_feeds)
-        new_urls = [url for url in urls if url not in articles_dict]
+        existing_articles = db.get_articles()
+        new_urls = [url for url in urls if url not in existing_articles]
         logger.info(f"Found {len(urls)} total articles, {len(new_urls)} new articles to process")
         
         if new_urls:
@@ -147,9 +145,11 @@ async def process_articles():
                     'content': article.content,
                     'publish_date': article.publish_date.isoformat() if article.publish_date else None
                 }
-                articles_dict[article.url] = article_dict
                 
                 try:
+                    # Save article to database
+                    db.save_article(article_dict)
+                    
                     # Generate summary
                     logger.info(f"Generating summary for: {article.title}")
                     summary = await summarize_text(article.content)
@@ -162,23 +162,18 @@ async def process_articles():
                     await convert_to_audio(
                         text=summary,
                         output_file_path=audio_path,
-                        provider=tts_provider,  # Using current settings
-                        voice_id=voice_id,      # Using current settings
-                        model=model            # Using current settings
+                        provider=tts_provider,
+                        voice_id=voice_id,
+                        model=model
                     )
                     
-                    # Save summary with relative audio path
-                    summaries_dict[article.url] = {
-                        'article': article_dict,
+                    # Save summary to database
+                    db.save_summary(article.url, {
                         'summary': summary,
-                        'audio_path': f"/audio/{audio_filename}"  # Use relative path for API
-                    }
-                    logger.info(f"Completed processing: {article.title}")
+                        'audio_path': f"/audio/{audio_filename}"
+                    })
                     
-                    # Save after each successful article
-                    save_to_yaml(ARTICLES_FILE, articles_dict)
-                    save_to_yaml(SUMMARIES_FILE, summaries_dict)
-                    logger.info("Saved current progress to files")
+                    logger.info(f"Completed processing: {article.title}")
                     
                 except Exception as e:
                     logger.error(f"Error processing article {article.title}: {str(e)}")
@@ -194,45 +189,30 @@ async def process_articles():
 
 @app.get("/settings")
 async def get_settings():
-    logger.info("Fetching current settings")
-    return current_settings
+    try:
+        return db.get_settings()
+    except Exception as e:
+        logger.error(f"Error fetching settings: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/settings")
 async def update_settings(settings: Settings):
     try:
-        logger.info(f"Updating settings: {settings.dict()}")
-        global current_settings
-        current_settings = settings
-        
-        # Save settings to file
-        save_to_yaml(SETTINGS_FILE, settings.dict())
-        logger.info("Settings saved successfully")
-        
-        return current_settings
+        db.save_settings(settings.dict())
+        return settings
     except Exception as e:
-        logger.error(f"Error saving settings: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to save settings: {str(e)}"
-        )
+        logger.error(f"Error saving settings: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/articles")
 async def get_articles(filter_date: str = None):
     try:
-        logger.info("Fetching articles from storage")
-        if not os.path.exists(ARTICLES_FILE):
-            logger.warning(f"Articles file not found at {ARTICLES_FILE}")
-            return {}
-            
-        articles = load_from_yaml(ARTICLES_FILE)
-        
-        if filter_date and articles:
-            # Convert string date to date object
-            target_date = datetime.strptime(filter_date, '%Y-%m-%d').date()
-            articles = filter_articles_by_date(articles, target_date)
-            logger.info(f"Filtered articles for date {filter_date}: {len(articles)} articles found")
-        
-        return articles if articles else {}
+        if filter_date:
+            target_date = datetime.strptime(filter_date, '%Y-%m-%d')
+            articles = db.get_articles(filter_date=target_date)
+        else:
+            articles = db.get_articles()
+        return articles
     except Exception as e:
         logger.error(f"Error fetching articles: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -240,14 +220,7 @@ async def get_articles(filter_date: str = None):
 @app.get("/summaries")
 async def get_summaries():
     try:
-        logger.info("Fetching summaries from storage")
-        if not os.path.exists(SUMMARIES_FILE):
-            logger.warning(f"Summaries file not found at {SUMMARIES_FILE}")
-            return {}
-            
-        summaries = load_from_yaml(SUMMARIES_FILE)
-        logger.info(f"Successfully loaded {len(summaries)} summaries")
-        return summaries if summaries else {}
+        return db.get_summaries()
     except Exception as e:
         logger.error(f"Error fetching summaries: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

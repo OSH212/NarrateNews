@@ -21,6 +21,7 @@
 !summarization.py
 !text_to_speech.py
 !utils.py
+!db.py
 
 # API folder
 !api/

@@ -2,8 +2,23 @@ import subprocess
 import sys
 import os
 from pathlib import Path
+from db import Database
+
+def check_database():
+    db = Database()
+    try:
+        articles = db.get_articles()
+        summaries = db.get_summaries()
+        settings = db.get_settings()
+        print(f"Database check: Found {len(articles)} articles and {len(summaries)} summaries")
+    except Exception as e:
+        print(f"Database check failed: {e}")
+        sys.exit(1)
 
 def start_services():
+    # Check database first
+    check_database()
+    
     # Get the directory containing this script
     root_dir = Path(__file__).parent
     web_dir = root_dir / "narrate-news-web"
